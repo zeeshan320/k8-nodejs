@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+    environment {
+        ENV = 'prod'   
+    }
+    
+    stages {
+        stage ('checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/zeeshan320/k8-nodejs']]])
+            }    
+        }
+        
+        stage ('docker build') {
+            steps {
+                script {
+                    withDockerRegistry([ credentialsId: "dockerhub", url: "https://index.docker.io/v1/" ]) {
+                        sh """
+                            docker build --build-arg VAR_ENV=${ENV} -t 8801302644/atc-assignment:latest .
+                            docker push 8801302644/atc-assignment:latest
+                        """
+                    }
+                }
+            }
+        }
+    }    
+}
